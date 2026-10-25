@@ -91,6 +91,7 @@ import { NetworkStack } from '../network-stack';
 import { getPrefixList } from '../utils/getter-utils';
 import { isEc2FirewallVpnRoute, isIpAddress } from '../utils/validation-utils';
 import { SharedResources } from './shared-resources';
+import { AFI_HANDOVER_STACK, AFI_HANDOVER_UUID, preserveAfiLookupLayout } from './afi-vpn-handover';
 
 interface Peering {
   name: string;
@@ -999,13 +1000,26 @@ export class NetworkAssociationsStack extends NetworkStack {
   private setBatchLookupTgwAttachmentId(
     tgwAttachmentIdLookupMap: Record<string, TransitGatewayAttachmentLookupOption>,
   ) {
+    // Local, version-pinned AFI handover: preserve the deployed shared lookup
+    // shape without re-declaring any detached AFI network resources.
+    const lookupMap = preserveAfiLookupLayout(this.stackName, tgwAttachmentIdLookupMap);
     const tgwAttachmentIds = TransitGatewayAttachment.fromBatchLookup(this, 'BatchTgwAttachmentLookup', {
-      options: Object.values(tgwAttachmentIdLookupMap),
+      options: Object.values(lookupMap),
       logRetentionInDays: this.logRetention,
       kmsKey: this.cloudwatchKey,
     });
 
-    Object.keys(tgwAttachmentIdLookupMap).forEach((key, index) => {
+    if (this.stackName === AFI_HANDOVER_STACK) {
+      const resource = this.node.findChild('BatchTgwAttachmentLookup').node.findChild('Resource').node.defaultChild;
+      if (!(resource instanceof cdk.CfnResource)) {
+        throw new Error('AFI handover: upstream batch construct path changed; review the customization.');
+      }
+      // Upstream generates a random UUID each synth. Retain the deployed value
+      // so an unrelated LZA run does not update the shared custom resource.
+      resource.addPropertyOverride('uuid', AFI_HANDOVER_UUID);
+    }
+
+    Object.keys(lookupMap).forEach((key, index) => {
       const tgwAttachmentId = tgwAttachmentIds.at(index);
 
       if (!tgwAttachmentId) {

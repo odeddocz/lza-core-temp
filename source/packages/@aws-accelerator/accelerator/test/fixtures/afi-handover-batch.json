@@ -1,0 +1,160 @@
+{
+  "ServiceToken": {
+    "Fn::GetAtt": ["CustomGetTransitGatewayAttachmentCustomResourceProviderHandler7E079354", "Arn"]
+  },
+  "uuid": "459c50a4-3196-46e2-abbf-b9ba54b16e6d",
+  "attachments": [
+    {
+      "name": "lza-nip-shared-services-attachment",
+      "owningAccountId": "863819359187",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpc",
+      "roleArn": {
+        "Fn::Join": [
+          "",
+          [
+            "arn:",
+            {
+              "Ref": "AWS::Partition"
+            },
+            ":iam::863819359187:role/lza-nip-GetTgwAttachmentRole-il-central-1"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "lza-nip-egress-attachment",
+      "owningAccountId": "012504444721",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpc",
+      "roleArn": {
+        "Fn::Join": [
+          "",
+          [
+            "arn:",
+            {
+              "Ref": "AWS::Partition"
+            },
+            ":iam::012504444721:role/lza-nip-GetTgwAttachmentRole-il-central-1"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "lza-nip-prod-attachment",
+      "owningAccountId": "682120332009",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpc",
+      "roleArn": {
+        "Fn::Join": [
+          "",
+          [
+            "arn:",
+            {
+              "Ref": "AWS::Partition"
+            },
+            ":iam::682120332009:role/lza-nip-GetTgwAttachmentRole-il-central-1"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "lza-ramdor-prod-attachment",
+      "owningAccountId": "769181184689",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpc",
+      "roleArn": {
+        "Fn::Join": [
+          "",
+          [
+            "arn:",
+            {
+              "Ref": "AWS::Partition"
+            },
+            ":iam::769181184689:role/lza-nip-GetTgwAttachmentRole-il-central-1"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "lza-ramdor-afi-nat-attachment",
+      "owningAccountId": "929570730750",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpc",
+      "roleArn": {
+        "Fn::Join": [
+          "",
+          [
+            "arn:",
+            {
+              "Ref": "AWS::Partition"
+            },
+            ":iam::929570730750:role/lza-nip-GetTgwAttachmentRole-il-central-1"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "lza-ramdor-ftp-attachment",
+      "owningAccountId": "115963247600",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpc",
+      "roleArn": {
+        "Fn::Join": [
+          "",
+          [
+            "arn:",
+            {
+              "Ref": "AWS::Partition"
+            },
+            ":iam::115963247600:role/lza-nip-GetTgwAttachmentRole-il-central-1"
+          ]
+        ]
+      }
+    },
+    {
+      "name": "AFI1-Properties",
+      "owningAccountId": "182790204395",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpn"
+    },
+    {
+      "name": "AFI2-Residences",
+      "owningAccountId": "182790204395",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpn"
+    },
+    {
+      "name": "lza-nip-s2s-vpn",
+      "owningAccountId": "182790204395",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpn"
+    },
+    {
+      "name": "lza-nip-s2s-vpn-jer",
+      "owningAccountId": "182790204395",
+      "transitGatewayId": {
+        "Ref": "SsmParameterValuelzanipnetworktransitGatewayslzaniptgwidC96584B6F00A464EAD1953AFF4B05118Parameter"
+      },
+      "type": "vpn"
+    }
+  ]
+}

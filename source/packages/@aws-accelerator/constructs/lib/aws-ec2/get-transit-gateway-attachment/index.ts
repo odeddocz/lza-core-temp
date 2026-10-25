@@ -21,6 +21,7 @@ import { AssumeRoleCommand, STSClient } from '@aws-sdk/client-sts';
 
 import { throttlingBackOff } from '@aws-accelerator/utils/lib/throttle';
 import { CloudFormationCustomResourceEvent } from '@aws-accelerator/utils/lib/common-types';
+import { retiredAfiLookupResults } from './afi-vpn-handover';
 
 interface TgwAttachmentOptions {
   /**
@@ -103,6 +104,8 @@ export async function handler(event: CloudFormationCustomResourceEvent): Promise
   switch (event.RequestType) {
     case 'Create':
     case 'Update':
+      const retiredResults = retiredAfiLookupResults(event);
+      const retiredIndices = new Set(retiredResults.map(item => item.index));
       const attachments = event.ResourceProperties['attachments'].map(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         (props: { [key: string]: any }, index: number) => ({
@@ -112,7 +115,9 @@ export async function handler(event: CloudFormationCustomResourceEvent): Promise
       );
 
       // Group attachments by EC2 client configuration and attachment type to share STS sessions and API calls
-      const groupedAttachments = groupByClientConfigAndType(attachments);
+      const groupedAttachments = groupByClientConfigAndType(
+        attachments.filter((item: { index: number }) => !retiredIndices.has(item.index)),
+      );
 
       // Process each group with shared EC2 client and batch API calls
       const results = await Promise.all(
@@ -123,10 +128,7 @@ export async function handler(event: CloudFormationCustomResourceEvent): Promise
       );
 
       // Flatten and sort by original index to maintain order
-      const tgwAttachmentsId = results
-        .flat()
-        .sort((a, b) => a.index - b.index)
-        .map(r => r.id);
+      const tgwAttachmentsId = [...results.flat(), ...retiredResults].sort((a, b) => a.index - b.index).map(r => r.id);
 
       return {
         PhysicalResourceId: event.LogicalResourceId,
