@@ -657,20 +657,8 @@ export class AcceleratorPipeline extends Construct {
      * Creates the accounts
      * Creates the ou's if control tower is not enabled
      */
-    // TEMPORARY AFI handover guard: retain the hold when the installer rebuilds
-    // this shared pipeline. Release only after the new core and network diffs
-    // are reviewed; enabling the transition can immediately release queued work.
-    const afiHandoverPrepareHold =
-      pipelineName === 'lza-nip-Pipeline' &&
-      cdk.Stack.of(this).account === '302524630066' &&
-      cdk.Stack.of(this).region === 'il-central-1';
-
     this.pipeline.addStage({
       stageName: 'Prepare',
-      transitionToEnabled: !afiHandoverPrepareHold,
-      transitionDisabledReason: afiHandoverPrepareHold
-        ? 'Temporary AFI handover hold. Prepare blocked pending operator approval'
-        : undefined,
       actions: [
         this.createToolkitStage({
           actionName: actionNames[AcceleratorStage.PREPARE],

@@ -65,41 +65,45 @@ function synthesize(overrides: Partial<PipelineStackProps> = {}) {
   return { template, properties: pipelines[0]['Properties'], pipelineId: Object.keys(resources)[0] };
 }
 
-describe('temporary AFI main-pipeline Prepare hold', () => {
-  test('the complete target template differs only by the disabled Prepare transition', () => {
+describe('AFI main-pipeline Prepare hold cleanup', () => {
+  test('the complete target template differs from the guarded version only by removing the Prepare hold', () => {
     const original = cdk.aws_codepipeline.Pipeline.prototype.addStage;
-    const enabledBaseline = vi.spyOn(cdk.aws_codepipeline.Pipeline.prototype, 'addStage').mockImplementation(function (
+    const guardedBaseline = vi.spyOn(cdk.aws_codepipeline.Pipeline.prototype, 'addStage').mockImplementation(function (
       this: cdk.aws_codepipeline.Pipeline,
       options,
     ) {
       return original.call(
         this,
         options.stageName === 'Prepare'
-          ? { ...options, transitionToEnabled: true, transitionDisabledReason: undefined }
+          ? {
+              ...options,
+              transitionToEnabled: false,
+              transitionDisabledReason: 'Temporary AFI handover hold. Prepare blocked pending operator approval',
+            }
           : options,
       );
     });
-    let baseline;
+    let guarded;
     try {
-      baseline = synthesize().template.toJSON();
+      const current = synthesize();
+      guarded = current.template.toJSON();
+      expect(guarded['Resources'][current.pipelineId].Properties.DisableInboundStageTransitions).toEqual([
+        {
+          StageName: 'Prepare',
+          Reason: 'Temporary AFI handover hold. Prepare blocked pending operator approval',
+        },
+      ]);
+      delete guarded['Resources'][current.pipelineId].Properties.DisableInboundStageTransitions;
     } finally {
-      enabledBaseline.mockRestore();
+      guardedBaseline.mockRestore();
     }
-    const current = synthesize();
-    const guarded = current.template.toJSON();
-    delete guarded['Resources'][current.pipelineId].Properties.DisableInboundStageTransitions;
-    expect(guarded).toEqual(baseline);
+    expect(synthesize().template.toJSON()).toEqual(guarded);
   });
 
-  test('only Prepare is disabled in the synthesized target pipeline', () => {
+  test('Prepare is enabled and ordinary Review approval is preserved in the target pipeline', () => {
     const { properties } = synthesize();
     expect(properties.Name).toBe('lza-nip-Pipeline');
-    expect(properties.DisableInboundStageTransitions).toEqual([
-      {
-        StageName: 'Prepare',
-        Reason: 'Temporary AFI handover hold. Prepare blocked pending operator approval',
-      },
-    ]);
+    expect(properties.DisableInboundStageTransitions).toBeUndefined();
     expect(properties.Stages.slice(0, 5).map((stage: { Name: string }) => stage.Name)).toEqual([
       'Source',
       'Prepare',
@@ -125,8 +129,9 @@ describe('temporary AFI main-pipeline Prepare hold', () => {
     expect(properties.DisableInboundStageTransitions).toBeUndefined();
   });
 
-  test('still holds Prepare if the ordinary Review approval is disabled', () => {
+  test('does not reintroduce the Prepare hold if ordinary Review approval is disabled', () => {
     const { properties } = synthesize({ enableApprovalStage: false });
-    expect(properties.DisableInboundStageTransitions[0].StageName).toBe('Prepare');
+    expect(properties.DisableInboundStageTransitions).toBeUndefined();
+    expect(properties.Stages.some((stage: { Name: string }) => stage.Name === 'Review')).toBe(false);
   });
 });
